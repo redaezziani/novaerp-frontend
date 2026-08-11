@@ -63,8 +63,10 @@ export function EditArticleDialog({
   const [error, setError] = useState<string | null>(null);
   const [loadedArticleId, setLoadedArticleId] = useState<number | null>(null);
   const updateArticle = useUpdateArticle();
-  const { data: categories } = useCategories();
-  const { data: units } = useUnits();
+  const { data: categoriesPage } = useCategories(0, 100);
+  const { data: unitsPage } = useUnits(0, 100);
+  const categories = categoriesPage?.content;
+  const units = unitsPage?.content;
 
   if (article && loadedArticleId !== article.id) {
     setLoadedArticleId(article.id);

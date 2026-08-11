@@ -8,10 +8,10 @@ import {
 } from "@/services/categories.service";
 import type { CategoryRequest } from "@/types/models";
 
-export function useCategories() {
+export function useCategories(page = 0, size = 20) {
   return useQuery({
-    queryKey: ["categories"],
-    queryFn: getCategories,
+    queryKey: ["categories", page, size],
+    queryFn: () => getCategories(page, size),
   });
 }
 

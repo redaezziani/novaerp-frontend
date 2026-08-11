@@ -8,10 +8,16 @@ import type {
   ArticleResponse,
   ArticleSupplierPriceRequest,
   ArticleSupplierPriceResponse,
+  Page,
 } from '@/types/models';
 
-export async function getArticles(): Promise<ArticleResponse[]> {
-  const { data } = await api.get<ArticleResponse[]>('/stock/articles');
+export async function getArticles(
+  page = 0,
+  size = 20,
+): Promise<Page<ArticleResponse>> {
+  const { data } = await api.get<Page<ArticleResponse>>('/stock/articles', {
+    params: { page, size },
+  });
   return data;
 }
 

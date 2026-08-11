@@ -31,6 +31,7 @@ import {
   MenuTrigger,
 } from "@/components/ui/menu";
 import { DataTable, type TableColumn } from "@/components/shared/data-table";
+import PaginationTable from "@/components/shared/pagination-table";
 import { CreateUnitDialog } from "@/components/units/create-unit-dialog";
 import { EditUnitDialog } from "@/components/units/edit-unit-dialog";
 import { useDeleteUnit, useUnits } from "@/hooks/use-units";
@@ -38,6 +39,8 @@ import { getApiErrorMessage } from "@/lib/api-error";
 import type { UnitResponse } from "@/types/models";
 
 export function UnitTable(): React.ReactElement {
+  const [currentPage, setCurrentPage] = useState(1);
+  const [pageSize, setPageSize] = useState(10);
   const [search, setSearch] = useState("");
   const [selectedIds, setSelectedIds] = useState<(string | number)[]>([]);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
@@ -45,7 +48,7 @@ export function UnitTable(): React.ReactElement {
   const [createDialogOpen, setCreateDialogOpen] = useState(false);
   const [editingUnit, setEditingUnit] = useState<UnitResponse | null>(null);
 
-  const { data, isPending } = useUnits();
+  const { data, isPending } = useUnits(currentPage - 1, pageSize);
   const deleteUnit = useDeleteUnit();
 
   const handleBulkDelete = async () => {
@@ -77,7 +80,7 @@ export function UnitTable(): React.ReactElement {
   return (
     <div className="space-y-4">
       <DataTable
-        data={isPending ? [] : (data ?? [])}
+        data={isPending ? [] : (data?.content ?? [])}
         columns={columns}
         searchKeys={["name", "symbol"]}
         searchPlaceholder="Rechercher une unité par nom ou symbole..."
@@ -88,10 +91,10 @@ export function UnitTable(): React.ReactElement {
         selectedIds={selectedIds}
         onSelectionChange={setSelectedIds}
         footer={
-          data && data.length > 0 ? (
+          data && data.totalElements > 0 ? (
             <div className="flex items-center justify-between text-sm">
               <span>Total unités</span>
-              <span>{data.length}</span>
+              <span>{data.totalElements}</span>
             </div>
           ) : undefined
         }
@@ -138,6 +141,17 @@ export function UnitTable(): React.ReactElement {
           </Menu>
         )}
       />
+
+      {data && data.totalElements > 0 && (
+        <PaginationTable
+          currentPage={currentPage}
+          totalPages={data.totalPages}
+          pageSize={pageSize}
+          totalItems={data.totalElements}
+          onPageChange={setCurrentPage}
+          onPageSizeChange={setPageSize}
+        />
+      )}
 
       <CreateUnitDialog open={createDialogOpen} onOpenChange={setCreateDialogOpen} />
 

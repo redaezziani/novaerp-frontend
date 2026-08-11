@@ -22,7 +22,8 @@ export function ArticlePicker({
   articleId,
   onArticleChange,
 }: ArticlePickerProps): React.ReactElement {
-  const { data: articles, isPending } = useArticles();
+  const { data: articlesPage, isPending } = useArticles(0, 100);
+  const articles = articlesPage?.content;
 
   const items = useMemo(
     () =>

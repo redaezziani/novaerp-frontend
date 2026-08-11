@@ -5,10 +5,14 @@ import {
 } from "@/services/stock-movements.service";
 import type { StockMovementRequest } from "@/types/models";
 
-export function useArticleMovements(articleId: number | null) {
+export function useArticleMovements(
+  articleId: number | null,
+  page = 0,
+  size = 20,
+) {
   return useQuery({
-    queryKey: ["stock-movements", articleId],
-    queryFn: () => getArticleMovements(articleId as number),
+    queryKey: ["stock-movements", articleId, page, size],
+    queryFn: () => getArticleMovements(articleId as number, page, size),
     enabled: typeof articleId === "number" && Number.isFinite(articleId),
   });
 }

@@ -2,10 +2,15 @@
 // Real backend calls for the Suppliers domain (/api/stock/suppliers).
 
 import { api } from '@/lib/axios';
-import type { SupplierRequest, SupplierResponse } from '@/types/models';
+import type { Page, SupplierRequest, SupplierResponse } from '@/types/models';
 
-export async function getSuppliers(): Promise<SupplierResponse[]> {
-  const { data } = await api.get<SupplierResponse[]>('/stock/suppliers');
+export async function getSuppliers(
+  page = 0,
+  size = 20,
+): Promise<Page<SupplierResponse>> {
+  const { data } = await api.get<Page<SupplierResponse>>('/stock/suppliers', {
+    params: { page, size },
+  });
   return data;
 }
 

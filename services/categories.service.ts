@@ -2,10 +2,15 @@
 // Real backend calls for the Categories domain (/api/stock/categories).
 
 import { api } from '@/lib/axios';
-import type { CategoryRequest, CategoryResponse } from '@/types/models';
+import type { CategoryRequest, CategoryResponse, Page } from '@/types/models';
 
-export async function getCategories(): Promise<CategoryResponse[]> {
-  const { data } = await api.get<CategoryResponse[]>('/stock/categories');
+export async function getCategories(
+  page = 0,
+  size = 20,
+): Promise<Page<CategoryResponse>> {
+  const { data } = await api.get<Page<CategoryResponse>>('/stock/categories', {
+    params: { page, size },
+  });
   return data;
 }
 

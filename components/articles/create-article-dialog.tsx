@@ -59,8 +59,10 @@ export function CreateArticleDialog({
   const [form, setForm] = useState(emptyForm);
   const [error, setError] = useState<string | null>(null);
   const createArticle = useCreateArticle();
-  const { data: categories } = useCategories();
-  const { data: units } = useUnits();
+  const { data: categoriesPage } = useCategories(0, 100);
+  const { data: unitsPage } = useUnits(0, 100);
+  const categories = categoriesPage?.content;
+  const units = unitsPage?.content;
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();

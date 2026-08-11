@@ -33,6 +33,7 @@ import {
   MenuTrigger,
 } from "@/components/ui/menu";
 import { DataTable, type TableColumn } from "@/components/shared/data-table";
+import PaginationTable from "@/components/shared/pagination-table";
 import { ArticleSupplierPrices } from "@/components/articles/article-supplier-prices";
 import { CreateArticleDialog } from "@/components/articles/create-article-dialog";
 import { EditArticleDialog } from "@/components/articles/edit-article-dialog";
@@ -47,6 +48,8 @@ const currency = new Intl.NumberFormat("fr-MA", {
 });
 
 export function ArticleTable(): React.ReactElement {
+  const [currentPage, setCurrentPage] = useState(1);
+  const [pageSize, setPageSize] = useState(10);
   const [search, setSearch] = useState("");
   const [selectedIds, setSelectedIds] = useState<(string | number)[]>([]);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
@@ -56,7 +59,7 @@ export function ArticleTable(): React.ReactElement {
     null,
   );
 
-  const { data, isPending } = useArticles();
+  const { data, isPending } = useArticles(currentPage - 1, pageSize);
   const deleteArticle = useDeleteArticle();
 
   const handleBulkDelete = async () => {
@@ -165,7 +168,7 @@ export function ArticleTable(): React.ReactElement {
   return (
     <div className="space-y-4">
       <DataTable
-        data={isPending ? [] : (data ?? [])}
+        data={isPending ? [] : (data?.content ?? [])}
         columns={columns}
         searchKeys={["designation", "reference", "categoryName", "brand"]}
         searchPlaceholder="Rechercher un article par désignation ou référence..."
@@ -180,10 +183,10 @@ export function ArticleTable(): React.ReactElement {
           <ArticleSupplierPrices article={article} />
         )}
         footer={
-          data && data.length > 0 ? (
+          data && data.totalElements > 0 ? (
             <div className="flex items-center justify-between text-sm">
               <span>Total articles</span>
-              <span>{data.length}</span>
+              <span>{data.totalElements}</span>
             </div>
           ) : undefined
         }
@@ -230,6 +233,17 @@ export function ArticleTable(): React.ReactElement {
           </Menu>
         )}
       />
+
+      {data && data.totalElements > 0 && (
+        <PaginationTable
+          currentPage={currentPage}
+          totalPages={data.totalPages}
+          pageSize={pageSize}
+          totalItems={data.totalElements}
+          onPageChange={setCurrentPage}
+          onPageSizeChange={setPageSize}
+        />
+      )}
 
       <CreateArticleDialog
         open={createDialogOpen}

@@ -3,13 +3,16 @@
 // There is no "list all" endpoint — movements are always scoped to an article.
 
 import { api } from '@/lib/axios';
-import type { StockMovementRequest, StockMovementResponse } from '@/types/models';
+import type { Page, StockMovementRequest, StockMovementResponse } from '@/types/models';
 
 export async function getArticleMovements(
   articleId: number,
-): Promise<StockMovementResponse[]> {
-  const { data } = await api.get<StockMovementResponse[]>(
+  page = 0,
+  size = 20,
+): Promise<Page<StockMovementResponse>> {
+  const { data } = await api.get<Page<StockMovementResponse>>(
     `/stock/movements/article/${articleId}`,
+    { params: { page, size } },
   );
   return data;
 }

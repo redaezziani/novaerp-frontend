@@ -30,6 +30,7 @@ import {
   MenuTrigger,
 } from "@/components/ui/menu";
 import { DataTable, type TableColumn } from "@/components/shared/data-table";
+import PaginationTable from "@/components/shared/pagination-table";
 import { CreateCategoryDialog } from "@/components/categories/create-category-dialog";
 import { EditCategoryDialog } from "@/components/categories/edit-category-dialog";
 import { useCategories, useDeleteCategory } from "@/hooks/use-categories";
@@ -43,6 +44,8 @@ const dateFormatter = new Intl.DateTimeFormat("fr-MA", {
 });
 
 export function CategoryTable(): React.ReactElement {
+  const [currentPage, setCurrentPage] = useState(1);
+  const [pageSize, setPageSize] = useState(10);
   const [search, setSearch] = useState("");
   const [selectedIds, setSelectedIds] = useState<(string | number)[]>([]);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
@@ -51,7 +54,7 @@ export function CategoryTable(): React.ReactElement {
   const [editingCategory, setEditingCategory] =
     useState<CategoryResponse | null>(null);
 
-  const { data, isPending } = useCategories();
+  const { data, isPending } = useCategories(currentPage - 1, pageSize);
   const deleteCategory = useDeleteCategory();
 
   const handleBulkDelete = async () => {
@@ -100,7 +103,7 @@ export function CategoryTable(): React.ReactElement {
   return (
     <div className="space-y-4">
       <DataTable
-        data={isPending ? [] : (data ?? [])}
+        data={isPending ? [] : (data?.content ?? [])}
         columns={columns}
         searchKeys={["name", "description"]}
         searchPlaceholder="Rechercher une catégorie par nom..."
@@ -111,10 +114,10 @@ export function CategoryTable(): React.ReactElement {
         selectedIds={selectedIds}
         onSelectionChange={setSelectedIds}
         footer={
-          data && data.length > 0 ? (
+          data && data.totalElements > 0 ? (
             <div className="flex items-center justify-between text-sm">
               <span>Total catégories</span>
-              <span>{data.length}</span>
+              <span>{data.totalElements}</span>
             </div>
           ) : undefined
         }
@@ -161,6 +164,17 @@ export function CategoryTable(): React.ReactElement {
           </Menu>
         )}
       />
+
+      {data && data.totalElements > 0 && (
+        <PaginationTable
+          currentPage={currentPage}
+          totalPages={data.totalPages}
+          pageSize={pageSize}
+          totalItems={data.totalElements}
+          onPageChange={setCurrentPage}
+          onPageSizeChange={setPageSize}
+        />
+      )}
 
       <CreateCategoryDialog
         open={createDialogOpen}

@@ -8,10 +8,10 @@ import {
 } from "@/services/units.service";
 import type { UnitRequest } from "@/types/models";
 
-export function useUnits() {
+export function useUnits(page = 0, size = 20) {
   return useQuery({
-    queryKey: ["units"],
-    queryFn: getUnits,
+    queryKey: ["units", page, size],
+    queryFn: () => getUnits(page, size),
   });
 }
 

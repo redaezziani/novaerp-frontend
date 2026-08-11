@@ -8,10 +8,10 @@ import {
 } from "@/services/suppliers.service";
 import type { SupplierRequest } from "@/types/models";
 
-export function useSuppliers() {
+export function useSuppliers(page = 0, size = 20) {
   return useQuery({
-    queryKey: ["suppliers"],
-    queryFn: getSuppliers,
+    queryKey: ["suppliers", page, size],
+    queryFn: () => getSuppliers(page, size),
   });
 }
 

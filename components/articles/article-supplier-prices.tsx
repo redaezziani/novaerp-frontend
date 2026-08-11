@@ -56,7 +56,8 @@ export function ArticleSupplierPrices({
   const [form, setForm] = useState(emptyForm);
   const [error, setError] = useState<string | null>(null);
   const { data: prices, isPending } = useArticleSupplierPrices(article.id);
-  const { data: suppliers } = useSuppliers();
+  const { data: suppliersPage } = useSuppliers(0, 100);
+  const suppliers = suppliersPage?.content;
   const createPrice = useCreateArticleSupplierPrice(article.id);
   const deletePrice = useDeleteArticleSupplierPrice(article.id);
 

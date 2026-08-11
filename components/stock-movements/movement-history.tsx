@@ -2,6 +2,7 @@
 
 import { HugeiconsIcon } from "@hugeicons/react";
 import type React from "react";
+import { useEffect, useState } from "react";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardFrame, CardHeader } from "@/components/ui/card";
 import {
@@ -12,6 +13,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+import PaginationTable from "@/components/shared/pagination-table";
 import { useArticleMovements } from "@/hooks/use-stock-movements";
 import type { ArticleResponse, StockMovementType } from "@/types/models";
 
@@ -44,7 +46,19 @@ export function MovementHistory({
 }: {
   article: ArticleResponse;
 }): React.ReactElement {
-  const { data: movements, isPending } = useArticleMovements(article.id);
+  const [currentPage, setCurrentPage] = useState(1);
+  const [pageSize, setPageSize] = useState(10);
+
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [article.id]);
+
+  const { data, isPending } = useArticleMovements(
+    article.id,
+    currentPage - 1,
+    pageSize,
+  );
+  const movements = data?.content;
 
   return (
     <Card>
@@ -113,6 +127,18 @@ export function MovementHistory({
           </TableBody>
         </Table>
       </CardFrame>
+      {data && data.totalElements > 0 && (
+        <div className="px-6 pb-6">
+          <PaginationTable
+            currentPage={currentPage}
+            totalPages={data.totalPages}
+            pageSize={pageSize}
+            totalItems={data.totalElements}
+            onPageChange={setCurrentPage}
+            onPageSizeChange={setPageSize}
+          />
+        </div>
+      )}
     </Card>
   );
 }

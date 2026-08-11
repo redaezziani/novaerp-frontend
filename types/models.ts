@@ -155,7 +155,7 @@ export interface Page<T> {
 }
 
 // ---------- Stock module (real backend, /api/stock/**) ----------
-// Not paginated — endpoints return plain arrays.
+// List endpoints are paginated — see Page<T> above.
 
 // ---- Categories ----
 export interface CategoryRequest {

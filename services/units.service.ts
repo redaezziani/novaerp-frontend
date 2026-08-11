@@ -2,10 +2,12 @@
 // Real backend calls for the Units domain (/api/stock/units).
 
 import { api } from '@/lib/axios';
-import type { UnitRequest, UnitResponse } from '@/types/models';
+import type { Page, UnitRequest, UnitResponse } from '@/types/models';
 
-export async function getUnits(): Promise<UnitResponse[]> {
-  const { data } = await api.get<UnitResponse[]>('/stock/units');
+export async function getUnits(page = 0, size = 20): Promise<Page<UnitResponse>> {
+  const { data } = await api.get<Page<UnitResponse>>('/stock/units', {
+    params: { page, size },
+  });
   return data;
 }
 
