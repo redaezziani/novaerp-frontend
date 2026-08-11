@@ -1,12 +1,11 @@
 "use client";
 
-import { HugeiconsIcon } from "@hugeicons/react";
 import {
-  ArrowLeft02Icon,
-  ArrowLeftDoubleIcon,
-  ArrowRight02Icon,
-  ArrowRightDoubleIcon,
-} from "@hugeicons/core-free-icons";
+  ChevronFirstIcon,
+  ChevronLastIcon,
+  ChevronLeftIcon,
+  ChevronRightIcon,
+} from "lucide-react";
 import type React from "react";
 import { useId } from "react";
 import { Label } from "@/components/ui/label";
@@ -18,8 +17,8 @@ import {
 } from "@/components/ui/pagination";
 import {
   Select,
+  SelectContent,
   SelectItem,
-  SelectPopup,
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
@@ -61,36 +60,37 @@ export default function PaginationTable({
     }
   };
 
-  const startItem = (currentPage - 1) * pageSize + 1;
+  const startItem = totalItems === 0 ? 0 : (currentPage - 1) * pageSize + 1;
   const endItem = Math.min(currentPage * pageSize, totalItems);
+
+  const isFirst = currentPage === 1 || totalPages <= 1;
+  const isLast = currentPage === totalPages || totalPages <= 1;
 
   return (
     <div className="flex items-center justify-between gap-8">
+      {/* Results per page */}
       <div className="flex items-center gap-3">
         <Label htmlFor={id}>Lignes par page</Label>
-        <Select
-          items={pageSizeOptions.map((size) => ({
-            label: String(size),
-            value: String(size),
-          }))}
-          value={String(pageSize)}
-          onValueChange={handlePageSizeChange}
-        >
-          <SelectTrigger id={id} className="w-fit whitespace-nowrap">
-            <SelectValue />
+        <Select value={String(pageSize)} onValueChange={handlePageSizeChange}>
+          <SelectTrigger className="w-fit whitespace-nowrap" id={id}>
+            <SelectValue placeholder="Select number of results" />
           </SelectTrigger>
-          <SelectPopup>
+          <SelectContent className="[&_*[role=option]>span]:start-auto [&_*[role=option]>span]:end-2 [&_*[role=option]]:ps-2 [&_*[role=option]]:pe-8">
             {pageSizeOptions.map((size) => (
               <SelectItem key={size} value={String(size)}>
                 {size}
               </SelectItem>
             ))}
-          </SelectPopup>
+          </SelectContent>
         </Select>
       </div>
 
+      {/* Page number information */}
       <div className="flex grow justify-end whitespace-nowrap text-muted-foreground text-sm">
-        <p aria-live="polite">
+        <p
+          aria-live="polite"
+          className="whitespace-nowrap text-muted-foreground text-sm"
+        >
           <span className="text-foreground">
             {startItem}-{endItem}
           </span>{" "}
@@ -98,78 +98,63 @@ export default function PaginationTable({
         </p>
       </div>
 
+      {/* Pagination */}
       <div>
         <Pagination>
           <PaginationContent>
+            {/* First page button */}
             <PaginationItem>
               <PaginationLink
+                aria-disabled={isFirst ? true : undefined}
+                aria-label="Go to first page"
                 className="aria-disabled:pointer-events-none aria-disabled:opacity-50 cursor-pointer"
-                onClick={() => handlePageChange(1)}
-                aria-label="Première page"
-                aria-disabled={
-                  currentPage === 1 || totalPages <= 1 ? true : undefined
-                }
+                onClick={() => {
+                  if (!isFirst) handlePageChange(1);
+                }}
               >
-                <HugeiconsIcon
-                  icon={ArrowLeftDoubleIcon}
-                  strokeWidth={2}
-                  className="size-4"
-                />
+                <ChevronFirstIcon aria-hidden="true" size={16} />
               </PaginationLink>
             </PaginationItem>
 
+            {/* Previous page button */}
             <PaginationItem>
               <PaginationLink
+                aria-disabled={isFirst ? true : undefined}
+                aria-label="Go to previous page"
                 className="aria-disabled:pointer-events-none aria-disabled:opacity-50 cursor-pointer"
-                onClick={() => handlePageChange(currentPage - 1)}
-                aria-label="Page précédente"
-                aria-disabled={
-                  currentPage === 1 || totalPages <= 1 ? true : undefined
-                }
+                onClick={() => {
+                  if (!isFirst) handlePageChange(currentPage - 1);
+                }}
               >
-                <HugeiconsIcon
-                  icon={ArrowLeft02Icon}
-                  strokeWidth={2}
-                  className="size-4"
-                />
+                <ChevronLeftIcon aria-hidden="true" size={16} />
               </PaginationLink>
             </PaginationItem>
 
+            {/* Next page button */}
             <PaginationItem>
               <PaginationLink
+                aria-disabled={isLast ? true : undefined}
+                aria-label="Go to next page"
                 className="aria-disabled:pointer-events-none aria-disabled:opacity-50 cursor-pointer"
-                onClick={() => handlePageChange(currentPage + 1)}
-                aria-label="Page suivante"
-                aria-disabled={
-                  currentPage === totalPages || totalPages <= 1
-                    ? true
-                    : undefined
-                }
+                onClick={() => {
+                  if (!isLast) handlePageChange(currentPage + 1);
+                }}
               >
-                <HugeiconsIcon
-                  icon={ArrowRight02Icon}
-                  strokeWidth={2}
-                  className="size-4"
-                />
+                <ChevronRightIcon aria-hidden="true" size={16} />
               </PaginationLink>
             </PaginationItem>
 
+            {/* Last page button */}
             <PaginationItem>
               <PaginationLink
+                aria-disabled={isLast ? true : undefined}
+                aria-label="Go to last page"
                 className="aria-disabled:pointer-events-none aria-disabled:opacity-50 cursor-pointer"
-                onClick={() => handlePageChange(totalPages)}
-                aria-label="Dernière page"
-                aria-disabled={
-                  currentPage === totalPages || totalPages <= 1
-                    ? true
-                    : undefined
-                }
+                onClick={() => {
+                  if (!isLast) handlePageChange(totalPages);
+                }}
               >
-                <HugeiconsIcon
-                  icon={ArrowRightDoubleIcon}
-                  strokeWidth={2}
-                  className="size-4"
-                />
+                <ChevronLastIcon aria-hidden="true" size={16} />
               </PaginationLink>
             </PaginationItem>
           </PaginationContent>
