@@ -1,10 +1,11 @@
 "use client";
 
-import { AlertCircleIcon, Delete02Icon } from "@hugeicons/core-free-icons";
+import { AlertCircleIcon, Delete02Icon, StarIcon } from "@hugeicons/core-free-icons";
 import { HugeiconsIcon } from "@hugeicons/react";
 import type React from "react";
 import { useState } from "react";
 import { Alert, AlertDescription } from "@/components/ui/alert";
+import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Field, FieldLabel } from "@/components/ui/field";
 import { Form } from "@/components/ui/form";
@@ -16,6 +17,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { Switch } from "@/components/ui/switch";
 import {
   Table,
   TableBody,
@@ -24,10 +26,12 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+import { Tooltip, TooltipTrigger, TooltipPopup } from "@/components/ui/tooltip";
 import {
   useArticleSupplierPrices,
   useCreateArticleSupplierPrice,
   useDeleteArticleSupplierPrice,
+  useSetPrimarySupplierPrice,
 } from "@/hooks/use-articles";
 import { useSuppliers } from "@/hooks/use-suppliers";
 import { getApiErrorMessage } from "@/lib/api-error";
@@ -41,6 +45,7 @@ const currency = new Intl.NumberFormat("fr-MA", {
 
 const emptyForm = {
   supplierId: "",
+  primary: false,
   priceHt: "",
   priceTtc: "",
   taxRate: "",
@@ -60,6 +65,11 @@ export function ArticleSupplierPrices({
   const suppliers = suppliersPage?.content;
   const createPrice = useCreateArticleSupplierPrice(article.id);
   const deletePrice = useDeleteArticleSupplierPrice(article.id);
+  const setPrimary = useSetPrimarySupplierPrice(article.id);
+
+  const sortedPrices = [...(prices ?? [])].sort(
+    (a, b) => Number(b.primary) - Number(a.primary),
+  );
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -69,6 +79,7 @@ export function ArticleSupplierPrices({
     try {
       await createPrice.mutateAsync({
         supplierId: Number(form.supplierId),
+        primary: form.primary,
         priceHt: Number(form.priceHt) || 0,
         priceTtc: Number(form.priceTtc) || 0,
         taxRate: form.taxRate ? Number(form.taxRate) : 0,
@@ -87,6 +98,15 @@ export function ArticleSupplierPrices({
       await deletePrice.mutateAsync(priceId);
     } catch (err) {
       setError(getApiErrorMessage(err, "Impossible de supprimer le tarif."));
+    }
+  };
+
+  const handleSetPrimary = async (priceId: number) => {
+    setError(null);
+    try {
+      await setPrimary.mutateAsync(priceId);
+    } catch (err) {
+      setError(getApiErrorMessage(err, "Impossible de définir le fournisseur principal."));
     }
   };
 
@@ -109,6 +129,7 @@ export function ArticleSupplierPrices({
       <Table>
         <TableHeader>
           <TableRow>
+            <TableHead className="w-10" />
             <TableHead>Fournisseur</TableHead>
             <TableHead>Prix HT</TableHead>
             <TableHead>Prix TTC</TableHead>
@@ -120,20 +141,50 @@ export function ArticleSupplierPrices({
         <TableBody>
           {isPending && (
             <TableRow>
-              <TableCell colSpan={6} className="text-center text-muted-foreground">
+              <TableCell colSpan={7} className="text-center text-muted-foreground">
                 Chargement...
               </TableCell>
             </TableRow>
           )}
-          {!isPending && (prices ?? []).length === 0 && (
+          {!isPending && sortedPrices.length === 0 && (
             <TableRow>
-              <TableCell colSpan={6} className="text-center text-muted-foreground">
+              <TableCell colSpan={7} className="text-center text-muted-foreground">
                 Aucun tarif fournisseur enregistré.
               </TableCell>
             </TableRow>
           )}
-          {(prices ?? []).map((price) => (
+          {sortedPrices.map((price) => (
             <TableRow key={price.id}>
+              <TableCell>
+                {price.primary ? (
+                  <Tooltip>
+                    <TooltipTrigger
+                      render={
+                        <Badge variant="warning" size="sm">
+                          <HugeiconsIcon icon={StarIcon} strokeWidth={2} />
+                        </Badge>
+                      }
+                    />
+                    <TooltipPopup>Fournisseur principal</TooltipPopup>
+                  </Tooltip>
+                ) : (
+                  <Tooltip>
+                    <TooltipTrigger
+                      render={
+                        <Button
+                          variant="ghost"
+                          size="icon-sm"
+                          onClick={() => handleSetPrimary(price.id)}
+                          loading={setPrimary.isPending}
+                        >
+                          <HugeiconsIcon icon={StarIcon} strokeWidth={2} />
+                        </Button>
+                      }
+                    />
+                    <TooltipPopup>Définir comme principal</TooltipPopup>
+                  </Tooltip>
+                )}
+              </TableCell>
               <TableCell className="font-medium">
                 {price.supplierName}
               </TableCell>
@@ -163,7 +214,7 @@ export function ArticleSupplierPrices({
       </Table>
 
       <Form onSubmit={handleSubmit} id={`add-supplier-price-form-${article.id}`}>
-        <div className="grid grid-cols-2 gap-3 sm:grid-cols-5">
+        <div className="grid grid-cols-2 gap-3 sm:grid-cols-6">
           <Field>
             <FieldLabel htmlFor={`supplierId-${article.id}`}>
               Fournisseur
@@ -189,6 +240,18 @@ export function ArticleSupplierPrices({
                 ))}
               </SelectPopup>
             </Select>
+          </Field>
+          <Field className="flex-row items-center justify-between pt-6">
+            <FieldLabel htmlFor={`primary-${article.id}`}>
+              Fournisseur principal
+            </FieldLabel>
+            <Switch
+              id={`primary-${article.id}`}
+              checked={form.primary}
+              onCheckedChange={(checked) =>
+                setForm({ ...form, primary: checked })
+              }
+            />
           </Field>
           <Field>
             <FieldLabel htmlFor={`priceHt-${article.id}`}>Prix HT</FieldLabel>

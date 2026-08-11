@@ -74,3 +74,13 @@ export async function deleteArticleSupplierPrice(
 ): Promise<void> {
   await api.delete(`/stock/articles/${articleId}/supplier-prices/${priceId}`);
 }
+
+export async function setArticleSupplierPricePrimary(
+  articleId: number,
+  priceId: number,
+): Promise<ArticleSupplierPriceResponse> {
+  const { data } = await api.put<ArticleSupplierPriceResponse>(
+    `/stock/articles/${articleId}/supplier-prices/${priceId}/primary`,
+  );
+  return data;
+}

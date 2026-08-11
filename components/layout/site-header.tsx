@@ -13,6 +13,7 @@ const routeTitles: Record<string, string> = {
   "/suppliers": "Fournisseurs",
   "/units": "Unités",
   "/stock-movements": "Mouvements de stock",
+  "/import-export": "Import / Export",
 };
 
 export function SiteHeader(): React.ReactElement {

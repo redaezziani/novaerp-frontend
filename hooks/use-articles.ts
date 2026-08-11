@@ -7,6 +7,7 @@ import {
   getArticle,
   getArticles,
   getArticleSupplierPrices,
+  setArticleSupplierPricePrimary,
   updateArticle,
 } from "@/services/articles.service";
 import type { ArticleRequest, ArticleSupplierPriceRequest } from "@/types/models";
@@ -88,6 +89,20 @@ export function useDeleteArticleSupplierPrice(articleId: number) {
   return useMutation({
     mutationFn: (priceId: number) =>
       deleteArticleSupplierPrice(articleId, priceId),
+    onSuccess: () => {
+      queryClient.invalidateQueries({
+        queryKey: ["articles", articleId, "supplier-prices"],
+      });
+    },
+  });
+}
+
+export function useSetPrimarySupplierPrice(articleId: number) {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: (priceId: number) =>
+      setArticleSupplierPricePrimary(articleId, priceId),
     onSuccess: () => {
       queryClient.invalidateQueries({
         queryKey: ["articles", articleId, "supplier-prices"],

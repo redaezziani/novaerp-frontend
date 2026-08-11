@@ -3,6 +3,7 @@
 import {
   DashboardSquare01Icon,
   Exchange02Icon,
+  FileExportIcon,
   Package02Icon,
   ShoppingCart01Icon,
   Store01Icon,
@@ -33,6 +34,11 @@ const navMain: NavMainItem[] = [
     title: "Mouvements de stock",
     url: "/stock-movements",
     icon: Exchange02Icon,
+  },
+  {
+    title: "Import / Export",
+    url: "/import-export",
+    icon: FileExportIcon,
   },
 ];
 

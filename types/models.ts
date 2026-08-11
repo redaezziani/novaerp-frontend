@@ -231,6 +231,7 @@ export interface ArticleResponse {
 // ---- Article supplier prices ----
 export interface ArticleSupplierPriceRequest {
   supplierId: number;
+  primary?: boolean;
   currency?: string;
   priceHt: number;
   taxRate?: number;
@@ -244,6 +245,7 @@ export interface ArticleSupplierPriceResponse {
   articleId: number;
   supplierId: number;
   supplierName: string;
+  primary: boolean;
   currency: string;
   priceHt: number;
   taxRate: number;
@@ -251,6 +253,21 @@ export interface ArticleSupplierPriceResponse {
   leadTimeDays: number | null;
   quoteDate: string | null;
   createdAt: string;
+}
+
+// ---- CSV import / export ----
+export interface ImportRowIssue {
+  row: number;
+  identifier: string;
+  message: string;
+}
+
+export interface ImportResultResponse {
+  created: number;
+  skipped: number;
+  failed: number;
+  errors: ImportRowIssue[];
+  warnings: ImportRowIssue[];
 }
 
 // ---- Stock movements ----
