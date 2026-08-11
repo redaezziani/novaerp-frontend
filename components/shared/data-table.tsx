@@ -17,10 +17,12 @@ import {
   CardHeader,
 } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
+import { cn } from "@/lib/utils";
 import {
   Table,
   TableBody,
   TableCell,
+  TableFooter,
   TableHead,
   TableHeader,
   TableRow,
@@ -52,6 +54,7 @@ export interface DataTableProps<T> {
   expandable?: boolean;
   renderExpandedRow?: (item: T) => ReactNode;
   onRowExpand?: (item: T) => void;
+  footer?: ReactNode;
 }
 
 export function DataTable<T extends object>({
@@ -73,6 +76,7 @@ export function DataTable<T extends object>({
   expandable = false,
   renderExpandedRow,
   onRowExpand,
+  footer,
 }: DataTableProps<T>): React.ReactElement {
   const [internalSearch, setInternalSearch] = useState("");
   const searchTerm = searchValue ?? internalSearch;
@@ -185,9 +189,9 @@ export function DataTable<T extends object>({
           <Table variant="card">
             <TableHeader>
               <TableRow className="bg-muted/40 hover:bg-muted/40">
-                {expandable && <TableHead className="w-px" />}
+                {expandable && <TableHead className="w-px first:ps-4" />}
                 {selectable && (
-                  <TableHead className="w-px">
+                  <TableHead className="w-px first:ps-4">
                     <Checkbox
                       checked={allSelected}
                       indeterminate={someSelected}
@@ -197,11 +201,16 @@ export function DataTable<T extends object>({
                   </TableHead>
                 )}
                 {columns.map((column) => (
-                  <TableHead key={column.key} className={column.className}>
+                  <TableHead
+                    key={column.key}
+                    className={cn("first:ps-4 last:pe-4", column.className)}
+                  >
                     {column.label}
                   </TableHead>
                 ))}
-                {actions && <TableHead className="text-right">Actions</TableHead>}
+                {actions && (
+                  <TableHead className="pe-4 text-right">Actions</TableHead>
+                )}
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -209,7 +218,7 @@ export function DataTable<T extends object>({
                 <TableRow>
                   <TableCell
                     colSpan={colSpan}
-                    className="h-24 text-center text-muted-foreground"
+                    className="h-24 px-4 text-center text-muted-foreground"
                   >
                     {emptyMessage ??
                       (searchTerm
@@ -231,7 +240,10 @@ export function DataTable<T extends object>({
                         onClick={() => onRowClick?.(item)}
                       >
                         {expandable && (
-                          <TableCell onClick={(e) => e.stopPropagation()}>
+                          <TableCell
+                            className="first:ps-4"
+                            onClick={(e) => e.stopPropagation()}
+                          >
                             <Button
                               variant="ghost"
                               size="icon-sm"
@@ -245,7 +257,10 @@ export function DataTable<T extends object>({
                           </TableCell>
                         )}
                         {selectable && (
-                          <TableCell onClick={(e) => e.stopPropagation()}>
+                          <TableCell
+                            className="first:ps-4"
+                            onClick={(e) => e.stopPropagation()}
+                          >
                             <Checkbox
                               checked={isSelected}
                               onCheckedChange={(checked) =>
@@ -256,13 +271,19 @@ export function DataTable<T extends object>({
                           </TableCell>
                         )}
                         {columns.map((column) => (
-                          <TableCell key={column.key} className={column.className}>
+                          <TableCell
+                            key={column.key}
+                            className={cn(
+                              "first:ps-4 last:pe-4",
+                              column.className,
+                            )}
+                          >
                             {renderCell(item, column)}
                           </TableCell>
                         ))}
                         {actions && (
                           <TableCell
-                            className="text-right"
+                            className="pe-4 text-right"
                             onClick={(e) => e.stopPropagation()}
                           >
                             <div className="flex items-center justify-end gap-2">
@@ -284,6 +305,18 @@ export function DataTable<T extends object>({
                 })
               )}
             </TableBody>
+            {footer && (
+              <TableFooter>
+                <TableRow>
+                  <TableCell
+                    colSpan={colSpan}
+                    className="bg-transparent px-4"
+                  >
+                    {footer}
+                  </TableCell>
+                </TableRow>
+              </TableFooter>
+            )}
           </Table>
         </CardFrame>
       </CardContent>

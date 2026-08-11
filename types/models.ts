@@ -11,16 +11,48 @@ export interface BaseEntity {
 // ---------- Auth / Users ----------
 export type Role = 'ADMIN' | 'USER';
 
-export interface User extends BaseEntity {
-  username: string;
+export interface User {
+  id: number;
+  fullName: string;
   email: string;
   role: Role;
-  active: boolean;
 }
 
 export interface AuthResponse {
   token: string;
-  user: User;
+  tokenType: string;
+  userId: number;
+  fullName: string;
+  email: string;
+  role: Role;
+}
+
+export interface LoginRequest {
+  email: string;
+  password: string;
+}
+
+export interface RegisterRequest {
+  fullName: string;
+  email: string;
+  password: string;
+}
+
+export interface ForgotPasswordRequest {
+  email: string;
+}
+
+export interface ResetPasswordRequest {
+  token: string;
+  newPassword: string;
+}
+
+export interface ApiError {
+  timestamp: string;
+  status: number;
+  error: string;
+  message: string;
+  path: string;
 }
 
 // ---------- Client ----------

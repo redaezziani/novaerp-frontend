@@ -1,14 +1,6 @@
 "use client";
 
-import {
-  DashboardSquare01Icon,
-  UserGroupIcon,
-  PackageIcon,
-  Invoice03Icon,
-  BoxesIcon,
-  Notification03Icon,
-  Shield01Icon,
-} from "@hugeicons/core-free-icons";
+import { DashboardSquare01Icon } from "@hugeicons/core-free-icons";
 import Link from "next/link";
 import type React from "react";
 import { NavMain, type NavMainItem } from "@/components/layout/nav-main";
@@ -22,20 +14,17 @@ import {
   SidebarMenuButton,
   SidebarMenuItem,
 } from "@/components/ui/sidebar";
+import { useAuth } from "@/providers/auth-provider";
 
 const navMain: NavMainItem[] = [
   { title: "Dashboard", url: "/dashboard", icon: DashboardSquare01Icon },
-  { title: "Clients", url: "/clients", icon: UserGroupIcon },
-  { title: "Produits", url: "/products", icon: PackageIcon },
-  { title: "Factures", url: "/invoices", icon: Invoice03Icon },
-  { title: "Stock", url: "/stock", icon: BoxesIcon },
-  { title: "Alertes", url: "/alerts", icon: Notification03Icon },
-  { title: "Audit", url: "/audit", icon: Shield01Icon },
 ];
 
 export function AppSidebar(
   props: React.ComponentProps<typeof Sidebar>,
 ): React.ReactElement {
+  const { user, logout } = useAuth();
+
   return (
     <Sidebar collapsible="icon" {...props}>
       <SidebarHeader>
@@ -59,7 +48,12 @@ export function AppSidebar(
         <NavMain items={navMain} />
       </SidebarContent>
       <SidebarFooter>
-        <NavUser user={{ name: "Salma", email: "salma@novaerp.ma" }} />
+        {user && (
+          <NavUser
+            user={{ name: user.fullName, email: user.email }}
+            onLogout={logout}
+          />
+        )}
       </SidebarFooter>
     </Sidebar>
   );

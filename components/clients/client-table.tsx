@@ -3,7 +3,6 @@
 import { HugeiconsIcon } from "@hugeicons/react";
 import {
   Add01Icon,
-  CheckmarkBadge01Icon,
   Delete02Icon,
   MoreVerticalIcon,
   PencilEdit01Icon,
@@ -23,6 +22,7 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
+import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
@@ -35,6 +35,7 @@ import {
 import { DataTable, type TableColumn } from "@/components/shared/data-table";
 import PaginationTable from "@/components/shared/pagination-table";
 import { CreateClientDialog } from "@/components/clients/create-client-dialog";
+import { EditClientDialog } from "@/components/clients/edit-client-dialog";
 import { parseCsv } from "@/lib/csv";
 import { useClients, useCreateClients, useDeleteClients } from "@/hooks/use-clients";
 import type { Client } from "@/types/models";
@@ -94,6 +95,7 @@ export function ClientTable(): React.ReactElement {
   const [selectedIds, setSelectedIds] = useState<(string | number)[]>([]);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [createDialogOpen, setCreateDialogOpen] = useState(false);
+  const [editingClient, setEditingClient] = useState<Client | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const { data, isPending } = useClients(currentPage - 1, pageSize);
@@ -134,9 +136,11 @@ export function ClientTable(): React.ReactElement {
       label: "Client",
       render: (client) => (
         <div className="flex max-w-80 items-center gap-3">
-          <div className="flex size-10 shrink-0 items-center justify-center rounded-md bg-muted font-medium text-xs">
-            {initials(client.nom)}
-          </div>
+          <Avatar className="size-10 rounded-md">
+            <AvatarFallback className="rounded-md">
+              {initials(client.nom)}
+            </AvatarFallback>
+          </Avatar>
           <div className="flex w-full flex-col">
             <span className="truncate font-medium">{client.nom}</span>
             <span className="truncate text-muted-foreground text-xs">
@@ -171,11 +175,10 @@ export function ClientTable(): React.ReactElement {
       key: "statut",
       label: "Statut",
       render: () => (
-        <Badge variant="secondary">
-          <HugeiconsIcon
-            icon={CheckmarkBadge01Icon}
-            strokeWidth={2}
-            className="text-success-foreground"
+        <Badge variant="outline">
+          <span
+            aria-hidden="true"
+            className="size-1.5 rounded-full bg-emerald-500"
           />
           Actif
         </Badge>
@@ -207,6 +210,14 @@ export function ClientTable(): React.ReactElement {
         onSelectionChange={setSelectedIds}
         expandable
         renderExpandedRow={(client) => <ClientExpandedRow client={client} />}
+        footer={
+          data && data.totalElements > 0 ? (
+            <div className="flex items-center justify-between text-sm">
+              <span>Total clients</span>
+              <span>{data.totalElements}</span>
+            </div>
+          ) : undefined
+        }
         customHeader={
           <>
             {selectedIds.length > 0 && (
@@ -250,7 +261,7 @@ export function ClientTable(): React.ReactElement {
                 <HugeiconsIcon icon={ViewIcon} strokeWidth={2} />
                 Voir la fiche
               </MenuItem>
-              <MenuItem>
+              <MenuItem onClick={() => setEditingClient(client)}>
                 <HugeiconsIcon icon={PencilEdit01Icon} strokeWidth={2} />
                 Modifier
               </MenuItem>
@@ -282,6 +293,14 @@ export function ClientTable(): React.ReactElement {
       )}
 
       <CreateClientDialog open={createDialogOpen} onOpenChange={setCreateDialogOpen} />
+
+      <EditClientDialog
+        client={editingClient}
+        open={editingClient !== null}
+        onOpenChange={(open) => {
+          if (!open) setEditingClient(null);
+        }}
+      />
 
       <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
         <AlertDialogContent>

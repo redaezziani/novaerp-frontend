@@ -21,21 +21,15 @@ const daysAgo = (n: number) =>
 export const mockUsers: User[] = [
   {
     id: 1,
-    username: 'salma',
+    fullName: 'Salma',
     email: 'salma@novaerp.ma',
     role: 'ADMIN',
-    active: true,
-    createdAt: daysAgo(60),
-    updatedAt: now,
   },
   {
     id: 2,
-    username: 'demo',
+    fullName: 'Demo',
     email: 'demo@novaerp.ma',
     role: 'USER',
-    active: true,
-    createdAt: daysAgo(30),
-    updatedAt: now,
   },
 ];
 

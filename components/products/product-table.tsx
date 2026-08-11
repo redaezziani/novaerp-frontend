@@ -36,6 +36,7 @@ import {
 import { DataTable, type TableColumn } from "@/components/shared/data-table";
 import PaginationTable from "@/components/shared/pagination-table";
 import { CreateProductDialog } from "@/components/products/create-product-dialog";
+import { EditProductDialog } from "@/components/products/edit-product-dialog";
 import { parseCsv } from "@/lib/csv";
 import {
   useCreateProducts,
@@ -94,9 +95,14 @@ export function ProductTable(): React.ReactElement {
   const [selectedIds, setSelectedIds] = useState<(string | number)[]>([]);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [createDialogOpen, setCreateDialogOpen] = useState(false);
+  const [editingProduct, setEditingProduct] = useState<Product | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const { data, isPending } = useProducts(currentPage - 1, pageSize);
+  const stockValue = (data?.content ?? []).reduce(
+    (sum, product) => sum + product.prixVente * product.quantiteStock,
+    0,
+  );
   const deleteProducts = useDeleteProducts();
   const createProducts = useCreateProducts();
 
@@ -227,6 +233,14 @@ export function ProductTable(): React.ReactElement {
         renderExpandedRow={(product) => (
           <ProductExpandedRow product={product} />
         )}
+        footer={
+          data && data.totalElements > 0 ? (
+            <div className="flex items-center justify-between text-sm">
+              <span>Valeur du stock (page actuelle)</span>
+              <span>{currency.format(stockValue)}</span>
+            </div>
+          ) : undefined
+        }
         customHeader={
           <>
             {selectedIds.length > 0 && (
@@ -270,7 +284,7 @@ export function ProductTable(): React.ReactElement {
                 <HugeiconsIcon icon={ViewIcon} strokeWidth={2} />
                 Voir la fiche
               </MenuItem>
-              <MenuItem>
+              <MenuItem onClick={() => setEditingProduct(product)}>
                 <HugeiconsIcon icon={PencilEdit01Icon} strokeWidth={2} />
                 Modifier
               </MenuItem>
@@ -304,6 +318,14 @@ export function ProductTable(): React.ReactElement {
       <CreateProductDialog
         open={createDialogOpen}
         onOpenChange={setCreateDialogOpen}
+      />
+
+      <EditProductDialog
+        product={editingProduct}
+        open={editingProduct !== null}
+        onOpenChange={(open) => {
+          if (!open) setEditingProduct(null);
+        }}
       />
 
       <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>

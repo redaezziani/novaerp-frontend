@@ -4,6 +4,7 @@ import {
   deleteProducts,
   getProduct,
   getProducts,
+  updateProduct,
 } from "@/services/services.mock";
 import type { Product } from "@/types/models";
 
@@ -40,6 +41,23 @@ export function useCreateProducts() {
     mutationFn: (
       products: Omit<Product, "id" | "createdAt" | "updatedAt">[],
     ) => createProducts(products),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["products"] });
+    },
+  });
+}
+
+export function useUpdateProduct() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: ({
+      id,
+      data,
+    }: {
+      id: number;
+      data: Omit<Product, "id" | "createdAt" | "updatedAt">;
+    }) => updateProduct(id, data),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["products"] });
     },

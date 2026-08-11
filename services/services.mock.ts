@@ -60,6 +60,17 @@ export async function createClients(
   return created;
 }
 
+export async function updateClient(
+  id: number,
+  data: Omit<Client, 'id' | 'createdAt' | 'updatedAt'>,
+): Promise<Client> {
+  await delay();
+  const client = mockClients.find((c) => c.id === id);
+  if (!client) throw new Error('Client introuvable');
+  Object.assign(client, data, { updatedAt: new Date().toISOString() });
+  return client;
+}
+
 // ---------- Products ----------
 export async function getProducts(page = 0, size = 10): Promise<Page<Product>> {
   await delay();
@@ -94,6 +105,17 @@ export async function createProducts(
   }));
   mockProducts.push(...created);
   return created;
+}
+
+export async function updateProduct(
+  id: number,
+  data: Omit<Product, 'id' | 'createdAt' | 'updatedAt'>,
+): Promise<Product> {
+  await delay();
+  const product = mockProducts.find((p) => p.id === id);
+  if (!product) throw new Error('Produit introuvable');
+  Object.assign(product, data, { updatedAt: new Date().toISOString() });
+  return product;
 }
 
 // ---------- Invoices ----------

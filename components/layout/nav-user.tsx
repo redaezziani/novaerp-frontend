@@ -21,8 +21,10 @@ import {
 
 export function NavUser({
   user,
+  onLogout,
 }: {
   user: { name: string; email: string };
+  onLogout?: () => void;
 }): React.ReactElement {
   const { isMobile } = useSidebar();
   const initials = user.name
@@ -88,7 +90,7 @@ export function NavUser({
               Paramètres
             </MenuItem>
             <MenuSeparator />
-            <MenuItem variant="destructive">
+            <MenuItem variant="destructive" onClick={onLogout}>
               <HugeiconsIcon icon={Logout03Icon} strokeWidth={2} />
               Déconnexion
             </MenuItem>
