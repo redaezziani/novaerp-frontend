@@ -1,6 +1,7 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import {
   createStockMovement,
+  getAllMovements,
   getArticleMovements,
 } from "@/services/stock-movements.service";
 import type { StockMovementRequest } from "@/types/models";
@@ -14,6 +15,13 @@ export function useArticleMovements(
     queryKey: ["stock-movements", articleId, page, size],
     queryFn: () => getArticleMovements(articleId as number, page, size),
     enabled: typeof articleId === "number" && Number.isFinite(articleId),
+  });
+}
+
+export function useAllStockMovements(page = 0, size = 20) {
+  return useQuery({
+    queryKey: ["stock-movements", "all", page, size],
+    queryFn: () => getAllMovements(page, size),
   });
 }
 

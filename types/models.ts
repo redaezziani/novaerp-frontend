@@ -135,16 +135,6 @@ export interface AuditLog extends BaseEntity {
   nouvelleValeur: string | null;
 }
 
-// ---------- Dashboard ----------
-export interface DashboardStats {
-  chiffreAffaires: number;
-  benefice: number;
-  topClients: { clientId: number; nom: string; total: number }[];
-  topProduits: { productId: number; nom: string; quantiteVendue: number }[];
-  produitsStockFaible: Product[];
-  produitsDormants: Product[];
-}
-
 // ---------- Pagination (matches Spring Boot Page<T>) ----------
 export interface Page<T> {
   content: T[];

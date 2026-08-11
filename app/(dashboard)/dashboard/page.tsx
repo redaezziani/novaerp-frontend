@@ -3,11 +3,12 @@
 import { HugeiconsIcon } from "@hugeicons/react";
 import {
   Alert02Icon,
-  ChartLineData01Icon,
-  Moon02Icon,
+  PackageOutOfStockIcon,
+  PackageRemoveIcon,
   Wallet01Icon,
 } from "@hugeicons/core-free-icons";
 import type React from "react";
+import { useMemo } from "react";
 import { cn } from "@/lib/utils";
 import {
   Card,
@@ -23,19 +24,34 @@ import {
   Table,
   TableBody,
   TableCell,
-  TableFooter,
   TableHead,
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
-import { useDashboardStats } from "@/hooks/use-dashboard";
+import { useArticles } from "@/hooks/use-articles";
+import { useCategories } from "@/hooks/use-categories";
+import { useSuppliers } from "@/hooks/use-suppliers";
+import { useAllStockMovements } from "@/hooks/use-stock-movements";
+import type { ArticleResponse, StockMovementType } from "@/types/models";
+import {
+  StockValueByCategoryChart,
+  type CategoryStockValue,
+} from "@/components/dashboard/stock-value-by-category-chart";
 
 const currency = new Intl.NumberFormat("fr-MA", {
   style: "currency",
   currency: "MAD",
   maximumFractionDigits: 0,
+});
+
+const dateTimeFormat = new Intl.DateTimeFormat("fr-FR", {
+  day: "2-digit",
+  month: "2-digit",
+  year: "numeric",
+  hour: "2-digit",
+  minute: "2-digit",
 });
 
 type Tone = "success" | "info" | "warning" | "error";
@@ -57,6 +73,21 @@ const toneStyles: Record<Tone, { chip: string; icon: string }> = {
     chip: "bg-destructive/10 dark:bg-destructive/16",
     icon: "text-destructive-foreground",
   },
+};
+
+const movementBadgeVariant: Record<
+  StockMovementType,
+  "success" | "destructive" | "warning"
+> = {
+  IN: "success",
+  OUT: "destructive",
+  ADJUSTMENT: "warning",
+};
+
+const movementLabel: Record<StockMovementType, string> = {
+  IN: "Entrée",
+  OUT: "Sortie",
+  ADJUSTMENT: "Ajustement",
 };
 
 function StatCard({
@@ -103,114 +134,209 @@ function StatCard({
 }
 
 export default function DashboardPage(): React.ReactElement {
-  const { data, isPending } = useDashboardStats();
+  const { data: articlesPage, isPending: isArticlesPending } = useArticles(
+    0,
+    500,
+  );
+  const { data: categoriesPage, isPending: isCategoriesPending } =
+    useCategories(0, 1);
+  const { data: suppliersPage, isPending: isSuppliersPending } = useSuppliers(
+    0,
+    1,
+  );
+  const { data: movementsPage, isPending: isMovementsPending } =
+    useAllStockMovements(0, 8);
 
-  const totalTopClients =
-    data?.topClients.reduce((sum, c) => sum + c.total, 0) ?? 0;
+  const articles = useMemo(
+    () => articlesPage?.content ?? [],
+    [articlesPage],
+  );
+
+  const stats = useMemo(() => {
+    let totalValue = 0;
+    let critical = 0;
+    let faible = 0;
+    let rupture = 0;
+
+    for (const article of articles) {
+      totalValue += article.stockQuantity * article.purchasePriceHt;
+
+      if (article.stockQuantity === 0) {
+        rupture += 1;
+      } else if (article.stockQuantity <= article.minStockQuantity / 3) {
+        critical += 1;
+      } else if (article.stockQuantity <= article.minStockQuantity) {
+        faible += 1;
+      }
+    }
+
+    return { totalValue, critical, faible, rupture };
+  }, [articles]);
+
+  const categoryValues = useMemo<CategoryStockValue[]>(() => {
+    const byCategory = new Map<string, number>();
+
+    for (const article of articles) {
+      const name = article.categoryName ?? "Sans catégorie";
+      const value = article.stockQuantity * article.purchasePriceHt;
+      byCategory.set(name, (byCategory.get(name) ?? 0) + value);
+    }
+
+    const sorted = Array.from(byCategory.entries())
+      .map(([categoryName, value]) => ({ categoryName, value }))
+      .sort((a, b) => b.value - a.value);
+
+    if (sorted.length <= 6) {
+      return sorted;
+    }
+
+    const top = sorted.slice(0, 6);
+    const rest = sorted.slice(6);
+    const otherValue = rest.reduce((sum, c) => sum + c.value, 0);
+
+    return [...top, { categoryName: "Autres", value: otherValue }];
+  }, [articles]);
+
+  const topArticles = useMemo<
+    (ArticleResponse & { stockValue: number })[]
+  >(() => {
+    return [...articles]
+      .map((article) => ({
+        ...article,
+        stockValue: article.stockQuantity * article.purchasePriceHt,
+      }))
+      .sort((a, b) => b.stockValue - a.stockValue)
+      .slice(0, 8);
+  }, [articles]);
+
+  const isPending = isArticlesPending;
 
   return (
     <div className="flex flex-col gap-4">
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
         <StatCard
-          title="Chiffre d'affaires"
-          value={data ? currency.format(data.chiffreAffaires) : "—"}
+          title="Valeur totale du stock"
+          value={currency.format(stats.totalValue)}
           icon={Wallet01Icon}
           tone="success"
           loading={isPending}
         />
         <StatCard
-          title="Bénéfice"
-          value={data ? currency.format(data.benefice) : "—"}
-          icon={ChartLineData01Icon}
-          tone="info"
+          title="Stock critique"
+          value={String(stats.critical)}
+          icon={Alert02Icon}
+          tone="error"
           loading={isPending}
         />
         <StatCard
           title="Stock faible"
-          value={data ? String(data.produitsStockFaible.length) : "—"}
-          icon={Alert02Icon}
+          value={String(stats.faible)}
+          icon={PackageRemoveIcon}
           tone="warning"
           loading={isPending}
         />
         <StatCard
-          title="Produits dormants"
-          value={data ? String(data.produitsDormants.length) : "—"}
-          icon={Moon02Icon}
-          tone="error"
+          title="Rupture de stock"
+          value={String(stats.rupture)}
+          icon={PackageOutOfStockIcon}
+          tone="info"
           loading={isPending}
         />
+      </div>
+
+      <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
+        <Card>
+          <CardPanel className="flex flex-col gap-1.5">
+            <CardDescription>Articles</CardDescription>
+            {isArticlesPending ? (
+              <Skeleton className="h-6 w-16" />
+            ) : (
+              <CardTitle className="text-xl">
+                {articlesPage?.totalElements ?? 0}
+              </CardTitle>
+            )}
+          </CardPanel>
+        </Card>
+        <Card>
+          <CardPanel className="flex flex-col gap-1.5">
+            <CardDescription>Catégories</CardDescription>
+            {isCategoriesPending ? (
+              <Skeleton className="h-6 w-16" />
+            ) : (
+              <CardTitle className="text-xl">
+                {categoriesPage?.totalElements ?? 0}
+              </CardTitle>
+            )}
+          </CardPanel>
+        </Card>
+        <Card>
+          <CardPanel className="flex flex-col gap-1.5">
+            <CardDescription>Fournisseurs</CardDescription>
+            {isSuppliersPending ? (
+              <Skeleton className="h-6 w-16" />
+            ) : (
+              <CardTitle className="text-xl">
+                {suppliersPage?.totalElements ?? 0}
+              </CardTitle>
+            )}
+          </CardPanel>
+        </Card>
       </div>
 
       <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
         <CardFrame>
           <CardFrameHeader>
-            <CardFrameTitle>Meilleurs clients</CardFrameTitle>
-            <CardFrameDescription>Par chiffre d&apos;affaires</CardFrameDescription>
+            <CardFrameTitle>Valeur du stock par catégorie</CardFrameTitle>
+            <CardFrameDescription>
+              Quantité en stock × prix d&apos;achat HT
+            </CardFrameDescription>
           </CardFrameHeader>
-          <Table variant="card">
-            <TableHeader>
-              <TableRow>
-                <TableHead>Client</TableHead>
-                <TableHead className="text-right">Total</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {isPending &&
-                Array.from({ length: 2 }).map((_, i) => (
-                  <TableRow key={i}>
-                    <TableCell colSpan={2}>
-                      <Skeleton className="h-5 w-full" />
-                    </TableCell>
-                  </TableRow>
+          <div className="px-6 pb-6">
+            {isArticlesPending ? (
+              <div className="flex flex-col gap-4">
+                {Array.from({ length: 5 }).map((_, i) => (
+                  <Skeleton key={i} className="h-8 w-full" />
                 ))}
-              {data?.topClients.map((client) => (
-                <TableRow key={client.clientId}>
-                  <TableCell className="font-medium">{client.nom}</TableCell>
-                  <TableCell className="text-right">
-                    <Badge variant="success">
-                      {currency.format(client.total)}
-                    </Badge>
-                  </TableCell>
-                </TableRow>
-              ))}
-            </TableBody>
-            <TableFooter>
-              <TableRow>
-                <TableCell>Total</TableCell>
-                <TableCell className="text-right">
-                  {currency.format(totalTopClients)}
-                </TableCell>
-              </TableRow>
-            </TableFooter>
-          </Table>
+              </div>
+            ) : (
+              <StockValueByCategoryChart data={categoryValues} />
+            )}
+          </div>
         </CardFrame>
 
         <CardFrame>
           <CardFrameHeader>
-            <CardFrameTitle>Meilleurs produits</CardFrameTitle>
-            <CardFrameDescription>Par quantité vendue</CardFrameDescription>
+            <CardFrameTitle>Meilleurs articles</CardFrameTitle>
+            <CardFrameDescription>Par valeur de stock</CardFrameDescription>
           </CardFrameHeader>
           <Table variant="card">
             <TableHeader>
               <TableRow>
-                <TableHead>Produit</TableHead>
-                <TableHead className="text-right">Quantité</TableHead>
+                <TableHead>Article</TableHead>
+                <TableHead className="text-right">Valeur</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
-              {isPending &&
-                Array.from({ length: 2 }).map((_, i) => (
+              {isArticlesPending &&
+                Array.from({ length: 3 }).map((_, i) => (
                   <TableRow key={i}>
                     <TableCell colSpan={2}>
                       <Skeleton className="h-5 w-full" />
                     </TableCell>
                   </TableRow>
                 ))}
-              {data?.topProduits.map((produit) => (
-                <TableRow key={produit.productId}>
-                  <TableCell className="font-medium">{produit.nom}</TableCell>
+              {topArticles.map((article) => (
+                <TableRow key={article.id}>
+                  <TableCell className="font-medium">
+                    {article.designation}
+                    <span className="ml-1.5 text-muted-foreground text-xs">
+                      {article.reference}
+                    </span>
+                  </TableCell>
                   <TableCell className="text-right">
-                    <Badge variant="info">{produit.quantiteVendue} u.</Badge>
+                    <Badge variant="success">
+                      {currency.format(article.stockValue)}
+                    </Badge>
                   </TableCell>
                 </TableRow>
               ))}
@@ -220,55 +346,52 @@ export default function DashboardPage(): React.ReactElement {
       </div>
 
       <CardFrame className="w-full">
+        <CardFrameHeader>
+          <CardFrameTitle>Mouvements récents</CardFrameTitle>
+          <CardFrameDescription>
+            Dernières entrées, sorties et ajustements de stock
+          </CardFrameDescription>
+        </CardFrameHeader>
         <Table variant="card">
           <TableHeader>
             <TableRow>
-              <TableHead>Produit</TableHead>
-              <TableHead>Référence</TableHead>
-              <TableHead>Statut</TableHead>
-              <TableHead className="text-right">Stock</TableHead>
-              <TableHead className="text-right">Seuil</TableHead>
+              <TableHead>Article</TableHead>
+              <TableHead>Type</TableHead>
+              <TableHead className="text-right">Quantité</TableHead>
+              <TableHead>Par</TableHead>
+              <TableHead className="text-right">Date</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
-            {isPending &&
-              Array.from({ length: 2 }).map((_, i) => (
+            {isMovementsPending &&
+              Array.from({ length: 4 }).map((_, i) => (
                 <TableRow key={i}>
                   <TableCell colSpan={5}>
                     <Skeleton className="h-5 w-full" />
                   </TableCell>
                 </TableRow>
               ))}
-            {data?.produitsStockFaible.map((product) => {
-              const isCritical = product.quantiteStock <= product.seuilMinimum / 3;
-
-              return (
-                <TableRow key={product.id}>
-                  <TableCell className="font-medium">{product.nom}</TableCell>
-                  <TableCell className="text-muted-foreground">
-                    {product.reference}
-                  </TableCell>
-                  <TableCell>
-                    <Badge variant="outline">
-                      <span
-                        aria-hidden="true"
-                        className={cn(
-                          "size-1.5 rounded-full",
-                          isCritical ? "bg-red-500" : "bg-amber-500",
-                        )}
-                      />
-                      {isCritical ? "Critique" : "Faible"}
-                    </Badge>
-                  </TableCell>
-                  <TableCell className="text-right">
-                    {product.quantiteStock}
-                  </TableCell>
-                  <TableCell className="text-right text-muted-foreground">
-                    {product.seuilMinimum}
-                  </TableCell>
-                </TableRow>
-              );
-            })}
+            {movementsPage?.content.map((movement) => (
+              <TableRow key={movement.id}>
+                <TableCell className="font-medium">
+                  {movement.articleReference}
+                </TableCell>
+                <TableCell>
+                  <Badge variant={movementBadgeVariant[movement.type]}>
+                    {movementLabel[movement.type]}
+                  </Badge>
+                </TableCell>
+                <TableCell className="text-right">
+                  {movement.quantity}
+                </TableCell>
+                <TableCell className="text-muted-foreground">
+                  {movement.createdByName}
+                </TableCell>
+                <TableCell className="text-right text-muted-foreground">
+                  {dateTimeFormat.format(new Date(movement.createdAt))}
+                </TableCell>
+              </TableRow>
+            ))}
           </TableBody>
         </Table>
       </CardFrame>

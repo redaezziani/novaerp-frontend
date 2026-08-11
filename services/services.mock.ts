@@ -9,7 +9,6 @@ import type {
   StockMovement,
   StockAlert,
   AuditLog,
-  DashboardStats,
   Page,
 } from '@/types/models';
 import {
@@ -19,7 +18,6 @@ import {
   mockStockMovements,
   mockAlerts,
   mockAuditLogs,
-  mockDashboardStats,
   toPage,
   delay,
 } from '@/mocks/mock-data';
@@ -153,10 +151,4 @@ export async function getAuditLogs(
 ): Promise<Page<AuditLog>> {
   await delay();
   return toPage(mockAuditLogs, page, size);
-}
-
-// ---------- Dashboard ----------
-export async function getDashboardStats(): Promise<DashboardStats> {
-  await delay();
-  return mockDashboardStats;
 }

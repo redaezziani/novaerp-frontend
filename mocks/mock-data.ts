@@ -9,7 +9,6 @@ import type {
   StockMovement,
   StockAlert,
   AuditLog,
-  DashboardStats,
   Page,
 } from '@/types/models';
 
@@ -346,24 +345,6 @@ export const mockAuditLogs: AuditLog[] = [
     updatedAt: daysAgo(1),
   },
 ];
-
-// ---------- Dashboard ----------
-export const mockDashboardStats: DashboardStats = {
-  chiffreAffaires: 4824,
-  benefice: 1102,
-  topClients: [
-    { clientId: 1, nom: 'Société Atlas Distribution', total: 3384 },
-    { clientId: 2, nom: 'Marjane Market Kenitra', total: 1440 },
-  ],
-  topProduits: [
-    { productId: 2, nom: 'Sucre 2kg', quantiteVendue: 50 },
-    { productId: 1, nom: 'Huile de table 5L', quantiteVendue: 20 },
-  ],
-  produitsStockFaible: mockProducts.filter(
-    (p) => p.quantiteStock <= p.seuilMinimum,
-  ),
-  produitsDormants: [mockProducts[5]],
-};
 
 // ---------- Helper: wrap any array in Spring-style Page<T> ----------
 export function toPage<T>(items: T[], page = 0, size = 10): Page<T> {
