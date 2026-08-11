@@ -7,6 +7,7 @@ import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import {
   Menu,
   MenuItem,
+  MenuGroup,
   MenuGroupLabel,
   MenuPopup,
   MenuSeparator,
@@ -69,21 +70,23 @@ export function NavUser({
             align="end"
             sideOffset={4}
           >
-            <MenuGroupLabel className="p-0 font-normal">
-              <div className="flex items-center gap-2 px-1 py-1.5 text-left text-sm">
-                <Avatar className="size-8 rounded-lg">
-                  <AvatarFallback className="rounded-lg">
-                    {initials}
-                  </AvatarFallback>
-                </Avatar>
-                <div className="grid flex-1 text-left text-sm leading-tight">
-                  <span className="truncate font-medium">{user.name}</span>
-                  <span className="truncate text-muted-foreground text-xs">
-                    {user.email}
-                  </span>
+            <MenuGroup>
+              <MenuGroupLabel className="p-0 font-normal">
+                <div className="flex items-center gap-2 px-1 py-1.5 text-left text-sm">
+                  <Avatar className="size-8 rounded-lg">
+                    <AvatarFallback className="rounded-lg">
+                      {initials}
+                    </AvatarFallback>
+                  </Avatar>
+                  <div className="grid flex-1 text-left text-sm leading-tight">
+                    <span className="truncate font-medium">{user.name}</span>
+                    <span className="truncate text-muted-foreground text-xs">
+                      {user.email}
+                    </span>
+                  </div>
                 </div>
-              </div>
-            </MenuGroupLabel>
+              </MenuGroupLabel>
+            </MenuGroup>
             <MenuSeparator />
             <MenuItem>
               <HugeiconsIcon icon={Settings01Icon} strokeWidth={2} />

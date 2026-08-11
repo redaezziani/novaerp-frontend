@@ -3,14 +3,20 @@
 import { useRouter } from "next/navigation";
 import type React from "react";
 import { createContext, useCallback, useContext, useEffect, useState } from "react";
-import { TOKEN_STORAGE_KEY } from "@/lib/axios";
-import { getMe, login as loginRequest } from "@/services/auth.service";
-import type { LoginRequest, User } from "@/types/models";
+import { TOKEN_COOKIE_NAME, TOKEN_MAX_AGE_SECONDS } from "@/lib/axios";
+import { deleteCookie, getCookie, setCookie } from "@/lib/cookies";
+import {
+  getMe,
+  login as loginRequest,
+  register as registerRequest,
+} from "@/services/auth.service";
+import type { LoginRequest, RegisterRequest, User } from "@/types/models";
 
 interface AuthContextValue {
   user: User | null;
   isLoading: boolean;
   login: (data: LoginRequest) => Promise<void>;
+  register: (data: RegisterRequest) => Promise<void>;
   logout: () => void;
 }
 
@@ -26,7 +32,7 @@ export function AuthProvider({
   const router = useRouter();
 
   useEffect(() => {
-    const token = localStorage.getItem(TOKEN_STORAGE_KEY);
+    const token = getCookie(TOKEN_COOKIE_NAME);
     if (!token) {
       setIsLoading(false);
       return;
@@ -35,14 +41,25 @@ export function AuthProvider({
     getMe()
       .then(setUser)
       .catch(() => {
-        localStorage.removeItem(TOKEN_STORAGE_KEY);
+        deleteCookie(TOKEN_COOKIE_NAME);
       })
       .finally(() => setIsLoading(false));
   }, []);
 
   const login = useCallback(async (data: LoginRequest) => {
     const res = await loginRequest(data);
-    localStorage.setItem(TOKEN_STORAGE_KEY, res.token);
+    setCookie(TOKEN_COOKIE_NAME, res.token, TOKEN_MAX_AGE_SECONDS);
+    setUser({
+      id: res.userId,
+      fullName: res.fullName,
+      email: res.email,
+      role: res.role,
+    });
+  }, []);
+
+  const register = useCallback(async (data: RegisterRequest) => {
+    const res = await registerRequest(data);
+    setCookie(TOKEN_COOKIE_NAME, res.token, TOKEN_MAX_AGE_SECONDS);
     setUser({
       id: res.userId,
       fullName: res.fullName,
@@ -52,13 +69,15 @@ export function AuthProvider({
   }, []);
 
   const logout = useCallback(() => {
-    localStorage.removeItem(TOKEN_STORAGE_KEY);
-    setUser(null);
+    deleteCookie(TOKEN_COOKIE_NAME);
     router.push("/login");
+    // Deferred so the popup/menu that triggered logout finishes closing
+    // before the sidebar (and the menu itself) unmounts.
+    setTimeout(() => setUser(null), 0);
   }, [router]);
 
   return (
-    <AuthContext.Provider value={{ user, isLoading, login, logout }}>
+    <AuthContext.Provider value={{ user, isLoading, login, register, logout }}>
       {children}
     </AuthContext.Provider>
   );

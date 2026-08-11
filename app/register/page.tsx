@@ -10,10 +10,10 @@ import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
 import { Field, FieldLabel } from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
-import { TOKEN_STORAGE_KEY } from "@/lib/axios";
-import { register as registerRequest } from "@/services/auth.service";
+import { useAuth } from "@/providers/auth-provider";
 
 export default function RegisterPage(): React.ReactElement {
+  const { register } = useAuth();
   const router = useRouter();
 
   const [fullName, setFullName] = useState("");
@@ -27,9 +27,8 @@ export default function RegisterPage(): React.ReactElement {
     setError(null);
     setSubmitting(true);
     try {
-      const res = await registerRequest({ fullName, email, password });
-      localStorage.setItem(TOKEN_STORAGE_KEY, res.token);
-      window.location.href = "/dashboard";
+      await register({ fullName, email, password });
+      router.push("/dashboard");
     } catch (err: unknown) {
       const message =
         (err as { response?: { data?: { message?: string } } })?.response

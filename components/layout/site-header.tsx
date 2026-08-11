@@ -8,6 +8,11 @@ import { SidebarTrigger } from "@/components/ui/sidebar";
 
 const routeTitles: Record<string, string> = {
   "/dashboard": "Dashboard",
+  "/articles": "Articles",
+  "/categories": "Catégories",
+  "/suppliers": "Fournisseurs",
+  "/units": "Unités",
+  "/stock-movements": "Mouvements de stock",
 };
 
 export function SiteHeader(): React.ReactElement {

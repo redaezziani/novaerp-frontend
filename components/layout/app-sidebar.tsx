@@ -1,6 +1,13 @@
 "use client";
 
-import { DashboardSquare01Icon } from "@hugeicons/core-free-icons";
+import {
+  DashboardSquare01Icon,
+  Exchange02Icon,
+  Package02Icon,
+  ShoppingCart01Icon,
+  Store01Icon,
+  TruckDeliveryIcon,
+} from "@hugeicons/core-free-icons";
 import Link from "next/link";
 import type React from "react";
 import { NavMain, type NavMainItem } from "@/components/layout/nav-main";
@@ -18,6 +25,15 @@ import { useAuth } from "@/providers/auth-provider";
 
 const navMain: NavMainItem[] = [
   { title: "Dashboard", url: "/dashboard", icon: DashboardSquare01Icon },
+  { title: "Articles", url: "/articles", icon: ShoppingCart01Icon },
+  { title: "Catégories", url: "/categories", icon: Store01Icon },
+  { title: "Fournisseurs", url: "/suppliers", icon: TruckDeliveryIcon },
+  { title: "Unités", url: "/units", icon: Package02Icon },
+  {
+    title: "Mouvements de stock",
+    url: "/stock-movements",
+    icon: Exchange02Icon,
+  },
 ];
 
 export function AppSidebar(

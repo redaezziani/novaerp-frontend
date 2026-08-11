@@ -153,3 +153,136 @@ export interface Page<T> {
   number: number; // current page (0-based in Spring)
   size: number;
 }
+
+// ---------- Stock module (real backend, /api/stock/**) ----------
+// Not paginated — endpoints return plain arrays.
+
+// ---- Categories ----
+export interface CategoryRequest {
+  name: string;
+  description: string;
+}
+
+export interface CategoryResponse {
+  id: number;
+  name: string;
+  description: string | null;
+  createdAt: string;
+}
+
+// ---- Units ----
+export interface UnitRequest {
+  name: string;
+  symbol: string;
+}
+
+export interface UnitResponse {
+  id: number;
+  name: string;
+  symbol: string;
+}
+
+// ---- Suppliers ----
+export interface SupplierRequest {
+  name: string;
+  email: string;
+  phone: string;
+  address: string;
+}
+
+export interface SupplierResponse {
+  id: number;
+  name: string;
+  email: string | null;
+  phone: string | null;
+  address: string | null;
+  createdAt: string;
+}
+
+// ---- Articles ----
+export interface ArticleRequest {
+  reference: string;
+  designation: string;
+  brand: string;
+  barcode: string;
+  categoryId: number | null;
+  unitId: number | null;
+  purchasePriceHt: number;
+  unitCostTtc: number;
+  salePriceHt: number;
+  minStockQuantity: number;
+  serialTracked: boolean;
+  description: string;
+  notes: string;
+}
+
+export interface ArticleResponse {
+  id: number;
+  reference: string;
+  designation: string;
+  brand: string | null;
+  barcode: string | null;
+  categoryId: number | null;
+  categoryName: string | null;
+  unitId: number | null;
+  unitName: string | null;
+  purchasePriceHt: number;
+  unitCostTtc: number;
+  salePriceHt: number;
+  stockQuantity: number;
+  minStockQuantity: number;
+  serialTracked: boolean;
+  description: string | null;
+  notes: string | null;
+  createdAt: string;
+  updatedAt: string;
+}
+
+// ---- Article supplier prices ----
+export interface ArticleSupplierPriceRequest {
+  supplierId: number;
+  currency?: string;
+  priceHt: number;
+  taxRate?: number;
+  priceTtc: number;
+  leadTimeDays: number | null;
+  quoteDate: string | null; // LocalDate ISO (YYYY-MM-DD)
+}
+
+export interface ArticleSupplierPriceResponse {
+  id: number;
+  articleId: number;
+  supplierId: number;
+  supplierName: string;
+  currency: string;
+  priceHt: number;
+  taxRate: number;
+  priceTtc: number;
+  leadTimeDays: number | null;
+  quoteDate: string | null;
+  createdAt: string;
+}
+
+// ---- Stock movements ----
+export type StockMovementType = "IN" | "OUT" | "ADJUSTMENT";
+
+export interface StockMovementRequest {
+  articleId: number;
+  type: StockMovementType;
+  quantity: number;
+  reference: string;
+  note: string;
+}
+
+export interface StockMovementResponse {
+  id: number;
+  articleId: number;
+  articleReference: string;
+  type: StockMovementType;
+  quantity: number;
+  reference: string | null;
+  note: string | null;
+  createdById: number;
+  createdByName: string;
+  createdAt: string;
+}

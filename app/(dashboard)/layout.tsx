@@ -1,7 +1,5 @@
 'use client';
 
-import { useRouter } from 'next/navigation';
-import { useEffect } from 'react';
 import { AppSidebar } from '@/components/layout/app-sidebar';
 import { SiteHeader } from '@/components/layout/site-header';
 import { Spinner } from '@/components/ui/spinner';
@@ -10,13 +8,6 @@ import { useAuth } from '@/providers/auth-provider';
 
 export default function DashboardLayout({ children }: LayoutProps<'/'>) {
   const { user, isLoading } = useAuth();
-  const router = useRouter();
-
-  useEffect(() => {
-    if (!isLoading && !user) {
-      router.replace('/login');
-    }
-  }, [isLoading, user, router]);
 
   if (isLoading || !user) {
     return (
