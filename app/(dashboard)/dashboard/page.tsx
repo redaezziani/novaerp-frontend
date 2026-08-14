@@ -43,15 +43,6 @@ const dateTimeFormat = new Intl.DateTimeFormat("fr-FR", {
   minute: "2-digit",
 });
 
-type Tone = "success" | "info" | "warning" | "error";
-
-const toneStyles: Record<Tone, { text: string }> = {
-  success: { text: "text-success-foreground" },
-  info: { text: "text-info-foreground" },
-  warning: { text: "text-warning-foreground" },
-  error: { text: "text-destructive-foreground" },
-};
-
 const movementBadgeVariant: Record<
   StockMovementType,
   "success" | "destructive" | "warning"
@@ -70,13 +61,11 @@ const movementLabel: Record<StockMovementType, string> = {
 function StatItem({
   title,
   value,
-  tone,
   loading,
   last,
 }: {
   title: string;
   value: string;
-  tone: Tone;
   loading: boolean;
   last?: boolean;
 }): React.ReactElement {
@@ -90,12 +79,7 @@ function StatItem({
       {loading ? (
         <Skeleton className="mx-auto h-11 w-24" />
       ) : (
-        <div
-          className={cn(
-            "text-center font-heading font-bold text-4xl sm:text-5xl",
-            toneStyles[tone].text,
-          )}
-        >
+        <div className="text-center font-heading font-bold text-4xl text-foreground sm:text-5xl">
           {value}
         </div>
       )}
@@ -190,25 +174,21 @@ export default function DashboardPage(): React.ReactElement {
         <StatItem
           title="Valeur totale du stock"
           value={currency.format(stats.totalValue)}
-          tone="success"
           loading={isPending}
         />
         <StatItem
           title="Stock critique"
           value={String(stats.critical)}
-          tone="error"
           loading={isPending}
         />
         <StatItem
           title="Stock faible"
           value={String(stats.faible)}
-          tone="warning"
           loading={isPending}
         />
         <StatItem
           title="Rupture de stock"
           value={String(stats.rupture)}
-          tone="info"
           loading={isPending}
           last
         />
@@ -218,19 +198,16 @@ export default function DashboardPage(): React.ReactElement {
         <StatItem
           title="Articles"
           value={String(articlesPage?.totalElements ?? 0)}
-          tone="info"
           loading={isArticlesPending}
         />
         <StatItem
           title="Catégories"
           value={String(categoriesPage?.totalElements ?? 0)}
-          tone="info"
           loading={isCategoriesPending}
         />
         <StatItem
           title="Fournisseurs"
           value={String(suppliersPage?.totalElements ?? 0)}
-          tone="info"
           loading={isSuppliersPending}
           last
         />
