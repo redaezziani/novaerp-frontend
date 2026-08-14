@@ -1,24 +1,13 @@
 "use client";
 
-import { HugeiconsIcon } from "@hugeicons/react";
-import {
-  Alert02Icon,
-  PackageOutOfStockIcon,
-  PackageRemoveIcon,
-  Wallet01Icon,
-} from "@hugeicons/core-free-icons";
 import type React from "react";
 import { useMemo } from "react";
 import { cn } from "@/lib/utils";
 import {
-  Card,
-  CardDescription,
   CardFrame,
   CardFrameDescription,
   CardFrameHeader,
   CardFrameTitle,
-  CardPanel,
-  CardTitle,
 } from "@/components/ui/card";
 import {
   Table,
@@ -56,23 +45,11 @@ const dateTimeFormat = new Intl.DateTimeFormat("fr-FR", {
 
 type Tone = "success" | "info" | "warning" | "error";
 
-const toneStyles: Record<Tone, { chip: string; icon: string }> = {
-  success: {
-    chip: "bg-success/10 dark:bg-success/16",
-    icon: "text-success-foreground",
-  },
-  info: {
-    chip: "bg-info/10 dark:bg-info/16",
-    icon: "text-info-foreground",
-  },
-  warning: {
-    chip: "bg-warning/10 dark:bg-warning/16",
-    icon: "text-warning-foreground",
-  },
-  error: {
-    chip: "bg-destructive/10 dark:bg-destructive/16",
-    icon: "text-destructive-foreground",
-  },
+const toneStyles: Record<Tone, { text: string }> = {
+  success: { text: "text-success-foreground" },
+  info: { text: "text-info-foreground" },
+  warning: { text: "text-warning-foreground" },
+  error: { text: "text-destructive-foreground" },
 };
 
 const movementBadgeVariant: Record<
@@ -90,46 +67,42 @@ const movementLabel: Record<StockMovementType, string> = {
   ADJUSTMENT: "Ajustement",
 };
 
-function StatCard({
+function StatItem({
   title,
   value,
-  icon,
   tone,
   loading,
+  last,
 }: {
   title: string;
   value: string;
-  icon: React.ComponentProps<typeof HugeiconsIcon>["icon"];
   tone: Tone;
   loading: boolean;
+  last?: boolean;
 }): React.ReactElement {
-  const styles = toneStyles[tone];
-
   return (
-    <Card>
-      <CardPanel className="flex items-start justify-between gap-4">
-        <div className="flex flex-col gap-1.5">
-          <CardDescription>{title}</CardDescription>
-          {loading ? (
-            <Skeleton className="h-7 w-24" />
-          ) : (
-            <CardTitle className="text-2xl">{value}</CardTitle>
-          )}
-        </div>
+    <div
+      className={cn(
+        "w-full border-border border-b pb-8 last:border-b-0 sm:border-b-0 sm:border-r sm:pb-0",
+        last && "sm:border-r-0",
+      )}
+    >
+      {loading ? (
+        <Skeleton className="mx-auto h-11 w-24" />
+      ) : (
         <div
           className={cn(
-            "flex size-9 shrink-0 items-center justify-center rounded-lg",
-            styles.chip,
+            "text-center font-heading font-bold text-4xl sm:text-5xl",
+            toneStyles[tone].text,
           )}
         >
-          <HugeiconsIcon
-            icon={icon}
-            strokeWidth={2}
-            className={cn("size-4.5", styles.icon)}
-          />
+          {value}
         </div>
-      </CardPanel>
-    </Card>
+      )}
+      <span className="mt-3 block text-center text-muted-foreground text-sm sm:text-base">
+        {title}
+      </span>
+    </div>
   );
 }
 
@@ -213,74 +186,54 @@ export default function DashboardPage(): React.ReactElement {
 
   return (
     <div className="flex flex-col gap-4">
-      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
-        <StatCard
+      <div className="flex flex-col gap-8 rounded-2xl border bg-card p-6 sm:flex-row sm:justify-between sm:gap-0 sm:p-10">
+        <StatItem
           title="Valeur totale du stock"
           value={currency.format(stats.totalValue)}
-          icon={Wallet01Icon}
           tone="success"
           loading={isPending}
         />
-        <StatCard
+        <StatItem
           title="Stock critique"
           value={String(stats.critical)}
-          icon={Alert02Icon}
           tone="error"
           loading={isPending}
         />
-        <StatCard
+        <StatItem
           title="Stock faible"
           value={String(stats.faible)}
-          icon={PackageRemoveIcon}
           tone="warning"
           loading={isPending}
         />
-        <StatCard
+        <StatItem
           title="Rupture de stock"
           value={String(stats.rupture)}
-          icon={PackageOutOfStockIcon}
           tone="info"
           loading={isPending}
+          last
         />
       </div>
 
-      <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
-        <Card>
-          <CardPanel className="flex flex-col gap-1.5">
-            <CardDescription>Articles</CardDescription>
-            {isArticlesPending ? (
-              <Skeleton className="h-6 w-16" />
-            ) : (
-              <CardTitle className="text-xl">
-                {articlesPage?.totalElements ?? 0}
-              </CardTitle>
-            )}
-          </CardPanel>
-        </Card>
-        <Card>
-          <CardPanel className="flex flex-col gap-1.5">
-            <CardDescription>Catégories</CardDescription>
-            {isCategoriesPending ? (
-              <Skeleton className="h-6 w-16" />
-            ) : (
-              <CardTitle className="text-xl">
-                {categoriesPage?.totalElements ?? 0}
-              </CardTitle>
-            )}
-          </CardPanel>
-        </Card>
-        <Card>
-          <CardPanel className="flex flex-col gap-1.5">
-            <CardDescription>Fournisseurs</CardDescription>
-            {isSuppliersPending ? (
-              <Skeleton className="h-6 w-16" />
-            ) : (
-              <CardTitle className="text-xl">
-                {suppliersPage?.totalElements ?? 0}
-              </CardTitle>
-            )}
-          </CardPanel>
-        </Card>
+      <div className="flex flex-col gap-8 rounded-2xl border bg-card p-6 sm:flex-row sm:justify-between sm:gap-0 sm:p-10">
+        <StatItem
+          title="Articles"
+          value={String(articlesPage?.totalElements ?? 0)}
+          tone="info"
+          loading={isArticlesPending}
+        />
+        <StatItem
+          title="Catégories"
+          value={String(categoriesPage?.totalElements ?? 0)}
+          tone="info"
+          loading={isCategoriesPending}
+        />
+        <StatItem
+          title="Fournisseurs"
+          value={String(suppliersPage?.totalElements ?? 0)}
+          tone="info"
+          loading={isSuppliersPending}
+          last
+        />
       </div>
 
       <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
