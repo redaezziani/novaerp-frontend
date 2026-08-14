@@ -1,8 +1,21 @@
 "use client";
 
 import type React from "react";
-import { useState } from "react";
-import { cn } from "@/lib/utils";
+import {
+  Bar,
+  BarChart,
+  CartesianGrid,
+  Cell,
+  LabelList,
+  XAxis,
+  YAxis,
+} from "recharts";
+import {
+  type ChartConfig,
+  ChartContainer,
+  ChartTooltip,
+  ChartTooltipContent,
+} from "@/components/ui/chart";
 
 export interface CategoryStockValue {
   categoryName: string;
@@ -29,6 +42,13 @@ const currency = new Intl.NumberFormat("fr-MA", {
   style: "currency",
   currency: "MAD",
   maximumFractionDigits: 0,
+  notation: "compact",
+});
+
+const currencyFull = new Intl.NumberFormat("fr-MA", {
+  style: "currency",
+  currency: "MAD",
+  maximumFractionDigits: 0,
 });
 
 function colorFor(categoryName: string, index: number): string {
@@ -37,13 +57,17 @@ function colorFor(categoryName: string, index: number): string {
     : CATEGORY_COLORS[index % CATEGORY_COLORS.length];
 }
 
+const chartConfig = {
+  value: {
+    label: "Valeur du stock",
+  },
+} satisfies ChartConfig;
+
 export function StockValueByCategoryChart({
   data,
 }: {
   data: CategoryStockValue[];
 }): React.ReactElement {
-  const [hovered, setHovered] = useState<number | null>(null);
-
   if (data.length === 0) {
     return (
       <div className="flex h-48 items-center justify-center text-muted-foreground text-sm">
@@ -52,77 +76,53 @@ export function StockValueByCategoryChart({
     );
   }
 
-  const maxValue = Math.max(1, ...data.map((d) => d.value));
-
   return (
-    <div className="flex flex-col gap-1">
-      {data.map((d, i) => {
-        const color = colorFor(d.categoryName, i);
-        const widthPct = Math.max((d.value / maxValue) * 100, 2);
-        const isHovered = hovered === i;
-
-        return (
-          <div
-            key={d.categoryName}
-            className="group relative flex flex-col gap-1 rounded-md px-1.5 py-1.5"
-            onMouseEnter={() => setHovered(i)}
-            onMouseLeave={() => setHovered(null)}
-          >
-            <div className="flex items-center justify-between gap-3 text-sm">
-              <div className="flex min-w-0 items-center gap-2">
-                <span
-                  aria-hidden="true"
-                  className="size-2.5 shrink-0 rounded-full"
-                  style={{ backgroundColor: color }}
-                />
-                <span className="truncate text-foreground">
-                  {d.categoryName}
-                </span>
-              </div>
-              <span
-                className={cn(
-                  "shrink-0 font-medium text-muted-foreground tabular-nums transition-colors",
-                  isHovered && "text-foreground",
-                )}
-              >
-                {currency.format(d.value)}
-              </span>
-            </div>
-
-            <svg
-              viewBox="0 0 100 8"
-              width="100%"
-              height={8}
-              preserveAspectRatio="none"
-              role="img"
-              aria-label={`${d.categoryName}: ${currency.format(d.value)}`}
-              className="overflow-visible"
-            >
-              <title>
-                {d.categoryName} — {currency.format(d.value)}
-              </title>
-              <rect
-                x={0}
-                y={0}
-                width={100}
-                height={8}
-                rx={4}
-                className="fill-muted"
-              />
-              <rect
-                x={0}
-                y={0}
-                width={widthPct}
-                height={8}
-                rx={4}
-                fill={color}
-                opacity={isHovered ? 1 : 0.9}
-                style={{ transition: "opacity 120ms ease, width 200ms ease" }}
-              />
-            </svg>
-          </div>
-        );
-      })}
-    </div>
+    <ChartContainer
+      config={chartConfig}
+      className="aspect-auto h-[clamp(220px,_18vw,_320px)] w-full"
+    >
+      <BarChart
+        accessibilityLayer
+        data={data}
+        layout="vertical"
+        margin={{ left: 4, right: 76 }}
+      >
+        <CartesianGrid horizontal={false} stroke="none" />
+        <XAxis type="number" domain={[0, "dataMax"]} hide />
+        <YAxis
+          dataKey="categoryName"
+          type="category"
+          tickLine={false}
+          axisLine={false}
+          tickMargin={8}
+          width={110}
+          tick={{ fontSize: 12 }}
+        />
+        <ChartTooltip
+          cursor={false}
+          content={
+            <ChartTooltipContent
+              hideLabel
+              formatter={(value) => currencyFull.format(Number(value))}
+            />
+          }
+        />
+        <Bar dataKey="value" radius={4}>
+          {data.map((entry, index) => (
+            <Cell
+              key={entry.categoryName}
+              fill={colorFor(entry.categoryName, index)}
+            />
+          ))}
+          <LabelList
+            dataKey="value"
+            position="right"
+            className="fill-foreground"
+            fontSize={12}
+            formatter={(value) => currency.format(Number(value))}
+          />
+        </Bar>
+      </BarChart>
+    </ChartContainer>
   );
 }
